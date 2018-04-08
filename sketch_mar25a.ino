@@ -1,28 +1,26 @@
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 
 
-const char* ssid = "Lenovo A6600 PLUS";
-const char* password = "";
+const char* ssid = "Manish";
+const char* password = "Manish@123";
 
 WiFiServer server(80);
 
-const int led = 13;
-int relayone =2;
-int relayTwo =5;
+
+int relayone =5;
 String output5State = "off"; 
 String webpage = "";
 String header;
 
 
 
-
 void setup(){
-  pinMode(led, OUTPUT);
-  pinMode(10, OUTPUT);
-  pinMode(2, OUTPUT);
+
   pinMode(5, OUTPUT);
+  digitalWrite(5, LOW);
   
-  digitalWrite(led, HIGH);
   Serial.begin(115200);
   WiFi.begin(ssid, password);
   Serial.println(".....");
@@ -45,7 +43,6 @@ void loop(){
   WiFiClient client = server.available(); 
   if(client){
   Serial.println("New Client");
-
   String currentLine = "";
   while (client.connected()){
     if(client.available()){
@@ -65,12 +62,17 @@ void loop(){
             if (header.indexOf("GET /5/on") >= 0) {
               Serial.println("GPIO 5 on");
               output5State = "on";
-              digitalWrite(led, HIGH);
+              digitalWrite(relayone, LOW);
+              
+              
             } else if (header.indexOf("GET /5/off") >= 0) {
               Serial.println("GPIO 5 off");
               output5State = "off";
-              digitalWrite(led, LOW);
-            }
+              digitalWrite(relayone, LOW);
+            
+              
+            } 
+          
 
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
@@ -81,21 +83,46 @@ void loop(){
             client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
             client.println(".button2 {background-color: #77878A;}</style></head>");
-            
+              
             // Web Page Heading
             client.println("<body><h1>Home Automation Using IOT</h1>");
             
             // Display current state, and ON/OFF buttons for GPIO 5  
-            client.println("<p>GPIO 5 - State " + output5State + "</p>");
+          //  client.println("<p>GPIO 5 - State " + output5State + "</p>");
             // If the output5State is off, it displays the ON button  
 
-                 client.println("<p><a href=\"http://www.cubersindia.com\"><button class=\"button\">ON</button></a></p>");
-                 client.println("<img src=\"https://cdn.dribbble.com/users/110995/screenshots/2092634/ikonica_600_wide_dribble_animation-duze-trajanje.gif\">");
+              client.println("<p>GPIO 5 - State " + output5State + "</p>");
+            // If the output5State is off, it displays the ON button       
             if (output5State=="off") {
-              client.println("<p><a href=\"/5/on\"><button class=\"button\">ON</button></a></p>");
-            } else if(output5State=="on") {
+               client.println("<p><a href=\"/5/on\"><button class=\"button\">ON</button></a></p>");
+               output5State="on";
+               HTTPClient http; 
+                   // client.println("<p><a href=\"/5/on\"><button class=\"button\">OFF</button></a></p>");
+                    String url = "http://cubersindia.com/";
+                    http.begin(url+ "manish/test.php?data=6");
+                     // http.begin("http://cubersindia.com/manish/test.php?data=6");
+                      const size_t bufferSize = JSON_OBJECT_SIZE(1) + 10;
+                      DynamicJsonBuffer jsonBuffer(bufferSize);
+                      const char* json = "{\"res\":\"6\"}";
+                      JsonObject& root = jsonBuffer.parseObject(json);
+                      const char* res = root["res"]; // "6"
+                      Serial.println(res);
+                      Serial.println(output5State);
+                    
+                      digitalWrite(relayone, LOW);
+                     
+                      
+              
+            } else if(output5State=="on"){
               client.println("<p><a href=\"/5/off\"><button class=\"button button2\">OFF</button></a></p>");
+               output5State="off";
+                     
+                      digitalWrite(relayone, LOW);
+                   
             } 
+                        
+                      client.println("<img src=\"https://cdn.dribbble.com/users/110995/screenshots/2092634/ikonica_600_wide_dribble_animation-duze-trajanje.gif\">");
+            
                
             
             client.println("</body></html>");
@@ -118,7 +145,9 @@ void loop(){
     client.stop();
     Serial.println("Client disconnected.");
     Serial.println("");
+   
     }
+    
 }
     
  
