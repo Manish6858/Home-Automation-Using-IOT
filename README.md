@@ -2,7 +2,7 @@
 
 Home automation app using NodeMcu ESP8266, you control your home appliance via Android app or Your Browser.
 
-# Used Components 
+## Used Components 
 
   - Arduino IDE
   - Relay 
